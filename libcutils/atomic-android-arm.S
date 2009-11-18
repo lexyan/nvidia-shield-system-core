@@ -232,7 +232,20 @@ android_atomic_or:
  * a general way to do it is to use kernel_cmpxchg */
 
 android_atomic_swap:
+#if defined (__ARM_HAVE_LDREX_STREX)
+1:  ldrex   r2, [r1]
+    strex   r3, r0, [r1]
+    teq     r3, #0
+    bne     1b
+    mov     r0, r2
+#if defined (__ARM_HAVE_DMB)
+    dmb
+#else
+    mcr     p15, 0, r0, c7, c10, 5
+#endif
+#else
     swp     r0, r0, [r1]
+#endif
     bx      lr
 
 /*
