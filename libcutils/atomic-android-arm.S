@@ -237,13 +237,17 @@ android_atomic_or:
 
 /* replaced swp instruction with ldrex/strex for ARMv6 & ARMv7 */
 android_atomic_swap:
-#if defined (_ARM_HAVE_LDREX_STREX)
+#if defined (__ARM_HAVE_LDREX_STREX)
 1:  ldrex   r2, [r1]
     strex   r3, r0, [r1]
     teq     r3, #0
     bne     1b
     mov     r0, r2
-    mcr     p15, 0, r0, c7, c10, 5 /* or, use dmb */
+#if defined (__ARM_HAVE_DMB)
+    dmb
+#else
+    mcr     p15, 0, r0, c7, c10, 5
+#endif
 #else
     swp     r0, r0, [r1]
 #endif
