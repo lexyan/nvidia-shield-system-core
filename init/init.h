@@ -166,6 +166,7 @@ void service_for_each_flags(unsigned matchflags,
                             void (*func)(struct service *svc));
 void service_stop(struct service *svc);
 void service_start(struct service *svc, const char *dynamic_args);
+void device_changed(const char *name, int is_add);
 void property_changed(const char *name, const char *value);
 
 void drain_action_queue(void);
@@ -174,7 +175,11 @@ void action_add_queue_tail(struct action *act);
 void action_for_each_trigger(const char *trigger,
                              void (*func)(struct action *act));
 void queue_property_triggers(const char *name, const char *value);
-void queue_all_property_triggers();
+void queue_device_triggers(const char *name, int is_add);
+void queue_all_device_triggers(void);
+void queue_all_property_triggers(void);
+
+void handle_device_uevents(void);
 
 #define INIT_IMAGE_FILE	"/initlogo.rle"
 
