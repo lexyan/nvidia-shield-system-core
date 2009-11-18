@@ -47,6 +47,7 @@
 #include "bootchart.h"
 
 static int property_triggers_enabled = 0;
+static int device_triggers_enabled = 0;
 
 #if BOOTCHART
 static int   bootchart_count;
@@ -64,6 +65,7 @@ static char qemu[32];
 static struct input_keychord *keychords = 0;
 static int keychords_count = 0;
 static int keychords_length = 0;
+int device_fd = -1;
 
 static void drain_action_queue(void);
 
@@ -311,6 +313,14 @@ void service_stop(struct service *svc)
         notify_service_state(svc->name, "stopping");
     } else {
         notify_service_state(svc->name, "stopped");
+    }
+}
+
+void device_changed(const char *name, int is_add)
+{
+    if (device_triggers_enabled) {
+        queue_device_triggers(name, is_add);
+        drain_action_queue();
     }
 }
 
@@ -765,6 +775,11 @@ int open_keychord()
     return fd;
 }
 
+void handle_device_uevents()
+{
+    handle_device_fd(device_fd);
+}
+
 void handle_keychord(int fd)
 {
     struct service *svc;
@@ -788,7 +803,6 @@ void handle_keychord(int fd)
 
 int main(int argc, char **argv)
 {
-    int device_fd = -1;
     int property_set_fd = -1;
     int signal_recv_fd = -1;
     int keychord_fd = -1;
@@ -947,12 +961,16 @@ int main(int argc, char **argv)
     action_for_each_trigger("boot", action_add_queue_tail);
     drain_action_queue();
 
+    queue_all_device_triggers();
+    drain_action_queue();
+    device_triggers_enabled = 1;
+
         /* run all property triggers based on current state of the properties */
     queue_all_property_triggers();
     drain_action_queue();
 
         /* enable property triggers */   
-    property_triggers_enabled = 1;     
+    property_triggers_enabled = 1;
 
     ufds[0].fd = device_fd;
     ufds[0].events = POLLIN;

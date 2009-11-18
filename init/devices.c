@@ -430,10 +430,12 @@ static void handle_device_event(struct uevent *uevent)
 
     if(!strcmp(uevent->action, "add")) {
         make_device(devpath, block, uevent->major, uevent->minor);
+        device_changed(devpath, 1);
         return;
     }
 
     if(!strcmp(uevent->action, "remove")) {
+        device_changed(devpath, 0);
         unlink(devpath);
         return;
     }
