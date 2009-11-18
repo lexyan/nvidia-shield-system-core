@@ -927,12 +927,18 @@ int adb_main(int is_daemon)
     if (sscanf(value, "%d", &port) == 1 && port > 0) {
         // listen on TCP port specified by service.adb.tcp.port property
         local_init(port);
-    } else if (access("/dev/android_adb", F_OK) == 0) {
-        // listen on USB
-        usb_init();
     } else {
+        int timeout = 100;
+        do {
+            if (access("/dev/android_adb", F_OK) == 0) {
+                usb_init();
+                break;
+            }
+            adb_sleep_ms(1);
+        } while (--timeout);
         // listen on default port
-        local_init(ADB_LOCAL_TRANSPORT_PORT);
+        if (!timeout)
+            local_init(ADB_LOCAL_TRANSPORT_PORT);
     }
     init_jdwp();
 #endif
