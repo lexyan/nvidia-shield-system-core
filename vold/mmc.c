@@ -107,11 +107,13 @@ static int mmc_bootstrap_card(char *sysfs_path)
     char saved_cwd[255];
     char new_cwd[255];
     char *devpath;
-    char *uevent_params[4];
+    char *uevent_params[4] = { NULL, NULL, NULL, NULL };
     char *p;
     char filename[255];
     char tmp[255];
     ssize_t sz;
+    unsigned int i;
+    int e = 1;
 
 #if DEBUG_BOOTSTRAP
     LOG_VOL("bootstrap_card(%s):", sysfs_path);
@@ -150,14 +152,22 @@ static int mmc_bootstrap_card(char *sysfs_path)
 
     sprintf(filename, "/sys%s/type", devpath);
     p = read_file(filename, &sz);
-    p[strlen(p) - 1] = '\0';
+    if (!p) {
+        LOGE("Error reading /sys%s/type", devpath);
+        goto out;
+    }
+    p[sz - 1] = '\0';
     sprintf(tmp, "MMC_TYPE=%s", p);
     free(p);
     uevent_params[1] = (char *) strdup(tmp);
 
     sprintf(filename, "/sys%s/name", devpath);
     p = read_file(filename, &sz);
-    p[strlen(p) - 1] = '\0';
+    if (!p) {
+        LOGE("Error reading /sys%s/name", devpath);
+        goto out;
+    }
+    p[sz - 1] = '\0';
     sprintf(tmp, "MMC_NAME=%s", p);
     free(p);
     uevent_params[2] = (char *) strdup(tmp);
@@ -166,7 +176,7 @@ static int mmc_bootstrap_card(char *sysfs_path)
 
     if (simulate_uevent("mmc", devpath, "add", uevent_params) < 0) {
         LOGE("Error simulating uevent (%s)", strerror(errno));
-        return -errno;
+        goto out;
     }
 
     /*
@@ -178,10 +188,19 @@ static int mmc_bootstrap_card(char *sysfs_path)
     if (!access(filename, F_OK)) {
         if (mmc_bootstrap_block(tmp)) {
             LOGE("Error bootstrapping block @ %s", tmp);
+            goto out;
         }
     }
 
-    return 0;
+    e = 0;
+
+ out:
+    for (i=0; i<sizeof(uevent_params)/sizeof(uevent_params[0]); i++) {
+        if (uevent_params[i])
+            free(uevent_params[i]);
+    }
+
+    return (e) ? -errno : 0;
 }
 
 static int mmc_bootstrap_block(char *devpath)

@@ -31,6 +31,7 @@ void *read_file(char *filename, ssize_t *_size)
 	struct stat sb;
 	ssize_t size;
 	void *buffer = NULL;
+	int offset = 0;
 
 	/* open the file */
 	fd = open(filename, O_RDONLY);
@@ -47,14 +48,18 @@ void *read_file(char *filename, ssize_t *_size)
 	if (!buffer)
 		goto bail;
 
-	/* slurp it into our buffer */
-	ret = read(fd, buffer, size);
-	if (ret != size)
-		goto bail;
+	do
+	{
+		errno = 0;
+		/* slurp it into our buffer */
+		ret = read(fd, buffer + offset, size - offset);
+		offset += ret;
+	} while ( (errno == EINTR) && (offset < size) );
 
-	/* let the caller know how big it is */
-	*_size = size;
-
+	/* Here the sb.st_size is the size of file on disk. ret is the
+         * the actual size of file. actual size of file need to be
+         * returned back here. */
+	*_size = offset;
 bail:
 	close(fd);
 	return buffer;
@@ -83,7 +88,7 @@ char *read_sysfs_var(char *buffer, size_t maxlen, char *devpath, char *var)
 
     snprintf(filename, sizeof(filename), "/sys%s/%s", devpath, var);
     p = read_file(filename, &sz);
-    p[(strlen(p) - 1)] = '\0';
+    p[sz - 1] = '\0';
     strncpy(buffer, p, maxlen);
     free(p);
     return buffer;
