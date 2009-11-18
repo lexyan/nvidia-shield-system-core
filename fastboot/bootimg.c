@@ -32,6 +32,11 @@
 
 #include <bootimg.h>
 
+void bootimg_set_name(boot_img_hdr *h, const char *name)
+{
+    strcpy((char*) h->name, name);
+}
+
 void bootimg_set_cmdline(boot_img_hdr *h, const char *cmdline)
 {
     strcpy((char*) h->cmdline, cmdline);
@@ -41,7 +46,8 @@ boot_img_hdr *mkbootimg(void *kernel, unsigned kernel_size,
                         void *ramdisk, unsigned ramdisk_size,
                         void *second, unsigned second_size,
                         unsigned page_size, unsigned base,
-                        unsigned *bootimg_size)
+                        unsigned *bootimg_size,
+                        const char *name)
 {
     unsigned kernel_actual;
     unsigned ramdisk_actual;

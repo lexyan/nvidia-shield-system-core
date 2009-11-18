@@ -42,6 +42,7 @@
 
 #include "fastboot.h"
 
+void bootimg_set_name(boot_img_hdr *h, const char *name);
 void bootimg_set_cmdline(boot_img_hdr *h, const char *cmdline);
 
 boot_img_hdr *mkbootimg(void *kernel, unsigned kernel_size,
@@ -230,7 +231,8 @@ void usage(void)
 }
 
 void *load_bootable_image(const char *kernel, const char *ramdisk, 
-                          unsigned *sz, const char *cmdline)
+                          unsigned *sz, const char *cmdline,
+                          const char *product)
 {
     void *kdata = 0, *rdata = 0;
     unsigned ksize = 0, rsize = 0;
@@ -251,6 +253,7 @@ void *load_bootable_image(const char *kernel, const char *ramdisk,
         /* is this actually a boot image? */
     if(!memcmp(kdata, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
         if(cmdline) bootimg_set_cmdline((boot_img_hdr*) kdata, cmdline);
+        if(product) bootimg_set_name((boot_img_hdr*) kdata, product);
         
         if(ramdisk) {
             fprintf(stderr, "cannot boot a boot.img *and* ramdisk\n");
@@ -276,6 +279,7 @@ void *load_bootable_image(const char *kernel, const char *ramdisk,
         return 0;
     }
     if(cmdline) bootimg_set_cmdline((boot_img_hdr*) bdata, cmdline);
+    if(product) bootimg_set_name((boot_img_hdr*) bdata, product);
     fprintf(stderr,"creating boot image - %d bytes\n", bsize);
     *sz = bsize;
     
@@ -621,7 +625,7 @@ int main(int argc, char **argv)
                 rname = argv[0];
                 skip(1);
             }
-            data = load_bootable_image(kname, rname, &sz, cmdline);
+            data = load_bootable_image(kname, rname, &sz, cmdline, product);
             if (data == 0) return 1;
             fb_queue_download("boot.img", data, sz);
             fb_queue_command("boot", "booting");
@@ -651,7 +655,7 @@ int main(int argc, char **argv)
             } else {
                 skip(3);
             }
-            data = load_bootable_image(kname, rname, &sz, cmdline);
+            data = load_bootable_image(kname, rname, &sz, cmdline, product);
             if (data == 0) die("cannot load bootable image");
             fb_queue_flash(pname, data, sz);
         } else if(!strcmp(*argv, "flashall")) {
