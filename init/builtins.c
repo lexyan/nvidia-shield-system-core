@@ -346,11 +346,17 @@ int do_mount(int nargs, char **args)
         ERROR("out of loopback devices");
         return -1;
     } else {
-        if (mount(source, target, system, flags, options) < 0) {
-            return -1;
-        }
-
-        return 0;
+        int timeout = 5;
+        do {
+            if (mount(source, target, system, flags, options) >= 0)
+                return 0;
+            ERROR("Cannot mount the device %s at %s as %s file "
+                  "system...retrying\n", source, target, system);
+            handle_device_uevents();
+            sleep(1);
+        } while (--timeout);
+        ERROR("Mount failed - Giving up\n");
+        return -1;
     }
 }
 
