@@ -54,6 +54,9 @@ struct {
     unsigned int uid;
     unsigned int gid;
 } property_perms[] = {
+    { "net.caif0.",       AID_RADIO,    0 },
+    { "net.usb0.",        AID_RADIO,    0 },
+    { "net.usb1.",        AID_RADIO,    0 },
     { "net.rmnet0.",      AID_RADIO,    0 },
     { "net.gprs.",        AID_RADIO,    0 },
     { "net.ppp",          AID_RADIO,    0 },
