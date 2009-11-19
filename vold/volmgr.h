@@ -26,6 +26,7 @@
 #include "devmapper.h"
 
 #define PROP_EXTERNAL_STORAGE_STATE "EXTERNAL_STORAGE_STATE"
+#define PROP_EXTERNAL_STORAGE_MOUNT "EXTERNAL_STORAGE_MOUNT"
 
 // these must match the corresponding states in the MediaState enum.
 // A path to the volume mount point follows the colon

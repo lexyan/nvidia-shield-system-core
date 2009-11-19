@@ -317,6 +317,8 @@ int volmgr_start_volume_by_mountpoint(char *mount_point)
 static void _cb_volstopped_for_devmapper_teardown(volume_t *v, void *arg)
 {
     devmapper_stop(v->dm);
+    /* update external storage directory to <empty> on card removal */
+    property_set(PROP_EXTERNAL_STORAGE_MOUNT, "");
     volume_setstate(v, volstate_nomedia);
     pthread_mutex_unlock(&v->lock);
 }
@@ -357,6 +359,10 @@ int volmgr_notify_eject(blkdev_t *dev, void (* cb) (blkdev_t *))
 
     volume_t *v;
     int rc;
+    int len;
+    char value[PROPERTY_VALUE_MAX];
+    int vol_match;
+    volume_state_t old_state;
 
     // XXX: Partitioning support is going to need us to stop *all*
     // devices in this volume
@@ -366,15 +372,29 @@ int volmgr_notify_eject(blkdev_t *dev, void (* cb) (blkdev_t *))
         return 0;
     }
     
+    len  = property_get(PROP_EXTERNAL_STORAGE_MOUNT, value, "");
+    vol_match = (len==strlen(v->mount_point) &&
+                 !(strncmp(v->mount_point, value, len)));
+
     pthread_mutex_lock(&v->lock);
 
-    volume_state_t old_state = v->state;
+    old_state = v->state;
 
     if (v->state == volstate_mounted ||
         v->state == volstate_ums ||
         v->state == volstate_checking) {
 
-        volume_setstate(v, volstate_badremoval);
+        volume_t *dmvol;
+
+        if (vol_match) {
+            /* reset the system property to NULL if the ejection corresponds
+             * to the currently mounted external storage device; otherwise,
+             * silently set the state. */
+            property_set(PROP_EXTERNAL_STORAGE_MOUNT, "");
+            volume_setstate(v, volstate_badremoval);
+        }
+        else
+            v->state = volstate_badremoval;
 
         /*
          * Stop any devmapper volumes which
@@ -382,7 +402,7 @@ int volmgr_notify_eject(blkdev_t *dev, void (* cb) (blkdev_t *))
          * XXX: We may need to enforce stricter
          * order here
          */
-        volume_t *dmvol = vol_root;
+        dmvol = vol_root;
         while (dmvol) {
             if ((dmvol->media_type == media_devmapper) &&
                 (dmvol->dm->src_type == dmsrc_loopback) &&
@@ -414,8 +434,14 @@ int volmgr_notify_eject(blkdev_t *dev, void (* cb) (blkdev_t *))
             cb(dev);
         pthread_mutex_unlock(&v->lock);
         return 0;
-    } else
-        volume_setstate(v, volstate_nomedia);
+    } else {
+        if (vol_match) {
+            property_set(PROP_EXTERNAL_STORAGE_MOUNT, "");
+            volume_setstate(v, volstate_nomedia);
+        }
+        else
+            v->state = volstate_nomedia;
+    }
     
     if (old_state == volstate_ums) {
         ums_disable(v->ums_path);
@@ -1081,6 +1107,10 @@ static int volmgr_start_fs(struct volmgr_fstable_entry *fs, volume_t *vol, blkde
         LOGI("Aborting start of %s (bootstrap = %d)\n", vol->mount_point,
              bootstrap);
         vol->state = volstate_unmounted;
+        /* This will be called during bootstrapping.
+         * Update external storage dir to mount correct volume later.
+         */
+        property_set(PROP_EXTERNAL_STORAGE_MOUNT, vol->mount_point);
         return -EBUSY;
     }
 
@@ -1175,6 +1205,8 @@ static void *volmgr_start_fs_thread(void *arg)
                 fs->name, dev->major, dev->minor, vol->mount_point,
                 (safe_mode ? "on" : "off"));
         vol->fs = fs;
+        /* Update external storage dir to mount point of the volume */
+        property_set(PROP_EXTERNAL_STORAGE_MOUNT, vol->mount_point);
         volume_setstate(vol, volstate_mounted);
         goto out;
     }
