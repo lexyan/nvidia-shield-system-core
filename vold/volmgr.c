@@ -1091,6 +1091,8 @@ static int _volmgr_start(volume_t *vol, blkdev_t *dev)
 // vol->lock MUST be held!
 static int volmgr_start_fs(struct volmgr_fstable_entry *fs, volume_t *vol, blkdev_t *dev)
 {
+    static boolean is_mount_path_set = false;
+
     /*
      * Spawn a thread to do the actual checking / mounting in
      */
@@ -1107,10 +1109,16 @@ static int volmgr_start_fs(struct volmgr_fstable_entry *fs, volume_t *vol, blkde
         LOGI("Aborting start of %s (bootstrap = %d)\n", vol->mount_point,
              bootstrap);
         vol->state = volstate_unmounted;
+
         /* This will be called during bootstrapping.
-         * Update external storage dir to mount correct volume later.
+         * Update external storage dir property to mount correct volume later.
+         * Set it only for the first detected external storage.
          */
-        property_set(PROP_EXTERNAL_STORAGE_MOUNT, vol->mount_point);
+        if (!is_mount_path_set) {
+            property_set(PROP_EXTERNAL_STORAGE_MOUNT, vol->mount_point);
+            is_mount_path_set = true;
+        }
+
         return -EBUSY;
     }
 
