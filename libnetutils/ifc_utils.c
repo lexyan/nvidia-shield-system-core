@@ -431,7 +431,11 @@ ifc_configure(const char *ifname,
 
     snprintf(dns_prop_name, sizeof(dns_prop_name), "dhcp.%s.dns1", ifname);
     property_set(dns_prop_name, dns1 ? ipaddr_to_string(dns1) : "");
+    snprintf(dns_prop_name, sizeof(dns_prop_name), "net.dns1", ifname);
+    property_set(dns_prop_name, dns1 ? ipaddr_to_string(dns1) : "");
     snprintf(dns_prop_name, sizeof(dns_prop_name), "dhcp.%s.dns2", ifname);
+    property_set(dns_prop_name, dns2 ? ipaddr_to_string(dns2) : "");
+    snprintf(dns_prop_name, sizeof(dns_prop_name), "net.dns2", ifname);
     property_set(dns_prop_name, dns2 ? ipaddr_to_string(dns2) : "");
 
     return 0;
