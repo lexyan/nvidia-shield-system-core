@@ -306,6 +306,9 @@ int blkdev_get_num_pending_partitions(blkdev_t *blk)
 {
     struct blkdev_list *list_scan = list_root;
     int num = blk->nr_parts;
+    /* in systems with multiple MMC cards, the number of pending partitions
+     * should only consider partitions on the newly-inserted card. */
+    int blk_inst = blk->minor / MMC_PARTS_PER_CARD;
 
     if (blk->type != blkdev_disk)
         return -EINVAL;
@@ -314,7 +317,8 @@ int blkdev_get_num_pending_partitions(blkdev_t *blk)
         if (list_scan->dev->type != blkdev_partition)
             goto next;
 
-        if (list_scan->dev->major != blk->major)
+        if (list_scan->dev->major != blk->major ||
+            ((list_scan->dev->minor / MMC_PARTS_PER_CARD != blk_inst)))
             goto next;
 
         if (list_scan->dev->nr_sec != 0xffffffff &&
