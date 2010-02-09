@@ -157,7 +157,7 @@ int vfat_mount(blkdev_t *dev, volume_t *vol, boolean safe_mode)
     }
 
 #if VFAT_DEBUG
-    LOG_VOL("vfat_mount(%s, %d:%d): mount rc = %d", dev->major,k dev->minor,
+    LOG_VOL("vfat_mount(%d:%d, %s): mount rc = %d", dev->major, dev->minor,
             vol->mount_point, rc);
 #endif
     free (devpath);
