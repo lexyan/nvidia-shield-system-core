@@ -91,3 +91,13 @@ ALL_DEFAULT_INSTALLED_MODULES += $(SYMLINKS)
 # local module name
 ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
     $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(SYMLINKS)
+
+# Create separate executables for tools that depend on
+# additional shared libraries
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES := fbread.c
+LOCAL_SHARED_LIBRARIES := libcutils libc libhardware
+LOCAL_MODULE := fbread
+
+include $(BUILD_EXECUTABLE)
