@@ -92,6 +92,8 @@ ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
 
 # Create separate executables for tools that depend on
 # additional shared libraries
+ifneq ($(BUILD_TINY_ANDROID),true)
+
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := fbread.c
@@ -99,3 +101,5 @@ LOCAL_SHARED_LIBRARIES := libcutils libc libhardware
 LOCAL_MODULE := fbread
 
 include $(BUILD_EXECUTABLE)
+
+endif
