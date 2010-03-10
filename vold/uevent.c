@@ -258,6 +258,8 @@ static int handle_switch_event(struct uevent *event)
     char *name = get_uevent_param(event, "SWITCH_NAME");
     char *state = get_uevent_param(event, "SWITCH_STATE");
 
+    if (!name || !state)
+        return 0;
 
     if (!strcmp(name, "usb_mass_storage")) {
         if (!strcmp(state, "online")) {
