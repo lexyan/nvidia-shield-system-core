@@ -96,6 +96,9 @@ media_t *media_lookup_by_path(char *devpath, boolean fuzzy_match)
 
     while (list_scan) {
         if (fuzzy_match) {
+#if DEBUG_MEDIA
+	LOG_VOL("media_lookup_by_path(): %s \n", list_scan->media->devpath);
+#endif
             if (!strncmp(list_scan->media->devpath, devpath, strlen(devpath)))
                 return list_scan->media;
         } else {

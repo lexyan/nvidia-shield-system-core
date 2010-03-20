@@ -94,13 +94,17 @@ static void volmgr_add_mediapath_to_volume(volume_t *v, char *media_path);
 static int volmgr_send_eject_request(volume_t *v);
 static volume_t *volmgr_lookup_volume_by_mountpoint(char *mount_point, boolean leave_locked);
 
-static boolean _mountpoint_mounted(char *mp)
+static boolean _check_mounted(const char *mp, int idx)
 {
     char device[256];
     char mount_path[256];
     char rest[256];
     FILE *fp;
     char line[1024];
+    boolean ret = false;
+
+    if (mp == NULL)
+      return ret;
 
     if (!(fp = fopen("/proc/mounts", "r"))) {
         LOGE("Error opening /proc/mounts (%s)", strerror(errno));
@@ -114,11 +118,32 @@ static boolean _mountpoint_mounted(char *mp)
             fclose(fp);
             return true;
         }
-        
+
+        if (idx == 1) {
+           char *devname = strrchr(device, '/');
+           if (!devname || strcmp(++devname, mp))
+              continue;
+           } else if (idx == 2) {
+             if (strcmp(mount_path, mp))
+                 continue;
+          }
+
+          LOGI("%s is already mounted", mp);
+          ret = true;
+          break;
     }
 
     fclose(fp);
-    return false;
+    return ret;
+}
+static boolean _device_mounted(const char *mp)
+{
+    return _check_mounted(mp, 1);
+}
+
+static boolean _mountpoint_mounted(const char *mp)
+{
+    return _check_mounted(mp, 2);
 }
 
 /*
@@ -298,7 +323,8 @@ int volmgr_start_volume_by_mountpoint(char *mount_point)
             LOGE("volmgr failed to start devmapper volume '%s'",
                  v->mount_point);
         }
-    } else if (v->media_type == media_mmc) {
+    } else if ((v->media_type == media_mmc) ||
+               (v->media_type == media_usb)) {
         if (!v->dev) {
             LOGE("Cannot start volume '%s' (volume is not bound)", mount_point);
             pthread_mutex_unlock(&v->lock);
@@ -309,7 +335,6 @@ int volmgr_start_volume_by_mountpoint(char *mount_point)
             LOGE("volmgr failed to start volume '%s'", v->mount_point);
         }
     }
-
     pthread_mutex_unlock(&v->lock);
     return 0;
 }
@@ -328,9 +353,12 @@ int volmgr_stop_volume_by_mountpoint(char *mount_point)
     int rc;
     volume_t *v;
 
+    LOGI("%s look for mount point: %s",__FUNCTION__,mount_point);
     v = volmgr_lookup_volume_by_mountpoint(mount_point, true);
-    if (!v)
+    if (!v) {
+        LOGI("not found");
         return -ENOENT;
+    }
 
     if (v->state == volstate_mounted)
         volmgr_send_eject_request(v);
@@ -541,6 +569,9 @@ static int volmgr_send_eject_request(volume_t *v)
 static int _volmgr_consider_disk_and_vol(volume_t *vol, blkdev_t *dev)
 {
     int rc = 0;
+    FILE *fp;
+    char tmp[1024];
+    char *devname_partition;
 
 #if DEBUG_VOLMGR
     LOG_VOL("volmgr_consider_disk_and_vol(%s, %d:%d):", vol->mount_point,
@@ -591,6 +622,12 @@ static int _volmgr_consider_disk_and_vol(volume_t *vol, blkdev_t *dev)
             dev->devpath, vol->mount_point);
 
     if (dev->nr_parts == 0) {
+        sprintf(tmp, "%s1", dev->devpath);
+        if (!(devname_partition = strrchr(tmp,'/')))
+            return -ENODEV;
+        if (_device_mounted(++devname_partition))
+            return -EBUSY;
+
         rc = _volmgr_start(vol, dev);
 #if DEBUG_VOLMGR
         LOG_VOL("_volmgr_start(%s, %d:%d) rc = %d", vol->mount_point,
@@ -616,6 +653,12 @@ static int _volmgr_consider_disk_and_vol(volume_t *vol, blkdev_t *dev)
                     dev->major, dev->minor);
                 continue;
             }
+             sprintf(tmp, "%s%d", dev->devpath, i + 1);
+             if (!(devname_partition = strrchr(tmp,'/')))
+                 continue;
+             if (_device_mounted(++devname_partition))
+                 continue;
+
             rc = _volmgr_start(vol, part);
 #if DEBUG_VOLMGR
             LOG_VOL("_volmgr_start(%s, %d:%d) rc = %d",
@@ -904,6 +947,8 @@ static int volmgr_config_volume(cnode *node)
         else if (!strcmp(child->name, "media_type")) {
             if (!strcmp(child->value, "mmc"))
                 new->media_type = media_mmc;
+            else if (!strcmp(child->value, "usb"))
+                new->media_type = media_usb;
             else if (!strcmp(child->value, "devmapper"))
                 new->media_type = media_devmapper;
             else {
@@ -935,6 +980,12 @@ static int volmgr_config_volume(cnode *node)
     if (new->media_type == media_mmc) {
         if (!new->media_paths[0] || !new->mount_point || new->media_type == media_unknown) {
             LOGE("Required configuration parameter missing for mmc volume");
+            rc = -EINVAL;
+            goto out_free;
+        }
+    }else if (new->media_type == media_usb) {
+        if (!new->media_paths[0] || !new->mount_point || new->media_type == media_unknown) {
+            LOGE("Required configuration parameter missing for usb volume");
             rc = -EINVAL;
             goto out_free;
         }

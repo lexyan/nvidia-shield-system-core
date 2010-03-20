@@ -59,6 +59,8 @@ static int handle_battery_event(struct uevent *);
 static int handle_mmc_event(struct uevent *);
 static int handle_block_event(struct uevent *);
 static int handle_bdi_event(struct uevent *);
+static int handle_scsi_event(struct uevent *);
+static int handle_usb_event(struct uevent *);
 static void _cb_blkdev_ok_to_destroy(blkdev_t *dev);
 
 static struct uevent_dispatch dispatch_table[] = {
@@ -68,6 +70,14 @@ static struct uevent_dispatch dispatch_table[] = {
     { "block", handle_block_event },
     { "bdi", handle_bdi_event },
     { "power_supply", handle_powersupply_event },
+    { "scsi", handle_scsi_event},
+    { "usb", handle_usb_event},
+    { "usb_device", handle_usb_event},
+    { "usb_endpoint", handle_usb_event},
+    { "scsi_host", handle_usb_event},
+    { "scsi_disk", handle_usb_event},
+    { "scsi_device", handle_usb_event},
+    { "scsi_generic", handle_usb_event},
     { NULL, NULL }
 };
 
@@ -280,6 +290,48 @@ static int handle_switch_event(struct uevent *event)
 }
 
 static int handle_battery_event(struct uevent *event)
+{
+    return 0;
+}
+
+static int handle_scsi_event(struct uevent *event)
+{
+    if (event->action == action_add) {
+        media_t *media;
+        char serial[80];
+        char *type;
+
+        read_sysfs_var(serial, sizeof(serial), event->path, "serial");
+        if (!(media = media_create(event->path,
+                                   "USBDISK",
+                                   serial,
+                                   media_usb))) {
+            LOGE("Unable to allocate new media (%s)", strerror(errno));
+            return -1;
+        }
+        LOGI("New USB SCSI Disk '%s' (serial %u) added @ %s", media->name,
+                  media->serial, media->devpath);
+    } else if (event->action == action_remove) {
+        media_t *media;
+
+        if (!(media = media_lookup_by_path(event->path, false))) {
+            LOGE("Unable to lookup media '%s'", event->path);
+            return -1;
+        }
+
+        LOGI("USB SCSI Disk '%s' (serial %u) @ %s removed", media->name,
+                  media->serial, media->devpath);
+        media_destroy(media);
+    } else {
+#if DEBUG_UEVENT
+        LOG_VOL("No handler implemented for action %d", event->action);
+#endif
+    }
+
+    return 0;
+}
+
+static int handle_usb_event(struct uevent *event)
 {
     return 0;
 }

@@ -123,6 +123,9 @@ int main(int argc, char **argv)
     // Switch
     switch_bootstrap();
 
+    // USB drive
+    usb_bootstrap();
+
     bootstrap = 0;
     /*
      * Main loop

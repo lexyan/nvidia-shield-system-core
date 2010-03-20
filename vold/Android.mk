@@ -8,6 +8,7 @@ LOCAL_SRC_FILES:=                \
                   uevent.c       \
                   mmc.c          \
 		  misc.c         \
+		  usbdrive.c     \
                   blkdev.c       \
                   ums.c          \
                   geom_mbr_enc.c \
