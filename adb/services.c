@@ -355,13 +355,8 @@ static int create_subprocess(const char *cmd, const char *arg0, const char *arg1
     }
 
     if(pid == 0){
-
         setsid();
-
-        dup2(s[1], 0);
-        dup2(s[1], 1);
-        dup2(s[1], 2);
-
+        dup2(s[1], STDOUT_FILENO);
         execl(cmd, cmd, arg0, arg1, NULL);
         fprintf(stderr, "- exec '%s' failed: %s (%d) -\n",
                 cmd, strerror(errno), errno);
