@@ -173,8 +173,8 @@ static int listfile_long(const char *path, int flags)
                date, name);
         break;
     case S_IFREG:
-        printf("%s %-8s %-8s %8d %s %s\n",
-               mode, user, group, (int) s.st_size, date, name);
+        printf("%s %-8s %-8s %16llu %s %s\n",
+               mode, user, group, s.st_size, date, name);
         break;
     case S_IFLNK: {
         char linkto[256];
@@ -192,12 +192,12 @@ static int listfile_long(const char *path, int flags)
             linkto[len] = 0;
         }
         
-        printf("%s %-8s %-8s          %s %s -> %s\n",
+        printf("%s %-8s %-8s                    %s %s -> %s\n",
                mode, user, group, date, name, linkto);
         break;
     }
     default:
-        printf("%s %-8s %-8s          %s %s\n",
+        printf("%s %-8s %-8s                    %s %s\n",
                mode, user, group, date, name);
 
     }
