@@ -113,11 +113,11 @@ static int fill_format(struct fbinfo* info, int format)
 
     static const int format_map[][9] = {
         {0, 0, 0, 0, 0, 0, 0, 0, 0},   // INVALID
-        {32, 24, 8, 16, 8, 8, 8, 0, 8}, // HAL_PIXEL_FORMAT_RGBA_8888
-        {32, 24, 8, 16, 8, 8, 8, 0, 0}, // HAL_PIXEL_FORMAT_RGBX_8888
+        {32, 0, 8, 8, 8, 16, 8, 24, 8}, // HAL_PIXEL_FORMAT_RGBA_8888
+        {32, 0, 8, 8, 8, 16, 8, 0, 0}, // HAL_PIXEL_FORMAT_RGBX_8888
         {24, 16, 8, 8, 8, 0, 8, 0, 0},  // HAL_PIXEL_FORMAT_RGB_888
         {16, 11, 5, 5, 6, 0, 5, 0, 0},  // HAL_PIXEL_FORMAT_RGB_565
-        {32, 8, 8, 16, 8, 24, 8, 0, 8}, // HAL_PIXEL_FORMAT_BGRA_8888
+        {32, 16, 8, 8, 8, 0, 8, 24, 8}, // HAL_PIXEL_FORMAT_BGRA_8888
         {16, 11, 5, 6, 5, 1, 5, 0, 1},  // HAL_PIXEL_FORMAT_RGBA_5551
         {16, 12, 4, 8, 4, 4, 4, 0, 4}   // HAL_PIXEL_FORMAT_RGBA_4444
     };
