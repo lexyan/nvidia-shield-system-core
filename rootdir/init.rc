@@ -35,6 +35,7 @@ loglevel 3
     mkdir /system
     mkdir /data 0771 system system
     mkdir /cache 0770 system cache
+    mkdir /misc 0770 system misc
     mkdir /config 0500 root root
 
     # Directory for putting things only root should see.
@@ -113,6 +114,10 @@ loglevel 3
     mount yaffs2 mtd@cache /cache nosuid nodev
     chown system cache /cache
     chmod 0770 /cache
+
+    mount yaffs2 mtd@misc /misc nosuid nodev
+    chown system misc /misc
+    chmod 0770 /misc
 
     # This may have been created by the recovery system with odd permissions
     chown system cache /cache/recovery
