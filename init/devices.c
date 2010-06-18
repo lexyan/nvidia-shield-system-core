@@ -92,7 +92,7 @@ static struct perms_ devperms[] = {
     { "/dev/ashmem",        0666,   AID_ROOT,       AID_ROOT,       0 },
     { "/dev/binder",        0666,   AID_ROOT,       AID_ROOT,       0 },
 
-	    /* logger should be world writable (for logging) but not readable */
+    /* logger should be world writable (for logging) but not readable */
     { "/dev/log/",          0662,   AID_ROOT,       AID_LOG,        1 },
 
     /* the msm hw3d client device node is world writable/readable. */
@@ -158,6 +158,7 @@ static struct perms_ devperms[] = {
     { "/dev/ppp",           0660,   AID_RADIO,      AID_VPN,        0 },
     { "/dev/tun",           0640,   AID_VPN,        AID_VPN,        0 },
     { "/dev/video0",        0660,   AID_ROOT,       AID_CAMERA,     1 },
+    { "/dev/video1",        0660,   AID_ROOT,       AID_CAMERA,     1 },
     { "/dev/snd/",          0664,   AID_SYSTEM,     AID_AUDIO,      1 },
     { NULL, 0, 0, 0, 0 },
 };
