@@ -34,6 +34,8 @@
 
 #include <cutils/sched_policy.h>
 
+#define USE_CGROUPS 0
+
 #ifndef SCHED_NORMAL
   #define SCHED_NORMAL 0
 #endif
@@ -96,7 +98,7 @@ static int add_tid_to_cgroup(int tid, SchedPolicy policy)
 
 static void __initialize(void) {
     char* filename;
-    if (!access("/dev/cpuctl/tasks", F_OK)) {
+    if (USE_CGROUPS && !access("/dev/cpuctl/tasks", F_OK)) {
         __sys_supports_schedgroups = 1;
 
         filename = "/dev/cpuctl/tasks";
