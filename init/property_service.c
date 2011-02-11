@@ -65,6 +65,8 @@ struct {
     { "gsm.",             AID_RADIO,    0 },
     { "persist.radio",    AID_RADIO,    0 },
     { "net.dns",          AID_RADIO,    0 },
+    { "net.wwan0.dns",    AID_RADIO,    0 },
+    { "net.caif0.dns",    AID_RADIO,    0 },
     { "net.",             AID_SYSTEM,   0 },
     { "dev.",             AID_SYSTEM,   0 },
     { "runtime.",         AID_SYSTEM,   0 },
