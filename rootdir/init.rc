@@ -283,7 +283,7 @@ service ueventd /sbin/ueventd
 service console /system/bin/sh
     console
     disabled
-    user shell
+    user root
     group log
 
 on property:ro.secure=0
