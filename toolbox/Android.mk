@@ -101,5 +101,6 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := fbread.c
 LOCAL_SHARED_LIBRARIES := libcutils libc libhardware
 LOCAL_MODULE := fbread
+LOCAL_MODULE_TAGS := eng
 
 include $(BUILD_EXECUTABLE)
