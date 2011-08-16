@@ -84,6 +84,7 @@ struct {
     { "persist.sys.",     AID_SYSTEM,   0 },
     { "persist.service.", AID_SYSTEM,   0 },
     { "persist.security.", AID_SYSTEM,   0 },
+    { "media.",           AID_MEDIA,    0},
     { NULL, 0, 0 }
 };
 
