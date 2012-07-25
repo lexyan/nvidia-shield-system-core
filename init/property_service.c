@@ -95,6 +95,7 @@ struct {
     { "persist.service.bdroid.", AID_BLUETOOTH,   0 },
     { "selinux."         , AID_SYSTEM,   0 },
     { "modem.",            AID_RADIO,   0},
+    { "sf.lcd_density",   AID_SYSTEM,   0 },
     { NULL, 0, 0 }
 };
 
