@@ -27,6 +27,8 @@
 
 __BEGIN_DECLS
 
+#define FRAMEWORK_HAS_WIFI_DISPLAY_SUPPORT 1
+
 /* The enums were moved here mostly from
  * frameworks/base/include/media/AudioSystem.h
  */
