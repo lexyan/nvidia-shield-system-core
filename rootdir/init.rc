@@ -59,6 +59,7 @@ on init
 
     # Mount staging areas for devices managed by vold
     # See storage config details at http://source.android.com/tech/storage/
+    mkdir /factory 0755 root system
     mount tmpfs tmpfs /mnt mode=0755,uid=0,gid=1000
     restorecon_recursive /mnt
 
