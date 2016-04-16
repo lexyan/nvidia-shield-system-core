@@ -504,7 +504,7 @@ static int do_mount_all(const std::vector<std::string>& args) {
     bool import_rc = true;
     bool queue_event = true;
     int mount_mode = MOUNT_MODE_DEFAULT;
-    const char* fstabfile = args[1].c_str();
+    std::string fstabfile = "";
     std::size_t path_arg_end = args.size();
     const char* prop_post_fix = "default";
 
@@ -522,11 +522,12 @@ static int do_mount_all(const std::vector<std::string>& args) {
         }
     }
 
-    std::string prop_name = android::base::StringPrintf("ro.boottime.init.mount_all.%s",
-                                                        prop_post_fix);
-    Timer t;
-    int ret =  mount_fstab(fstabfile, mount_mode);
-    property_set(prop_name.c_str(), std::to_string(t.duration_ms()).c_str());
+    int ret = expand_props(args[1], &fstabfile);
+    if (!ret) {
+        return -1;
+    }
+
+    ret = mount_fstab(fstabfile.c_str(), mount_mode);
 
     if (import_rc) {
         /* Paths of .rc files are specified at the 2nd argument and beyond */
@@ -545,8 +546,14 @@ static int do_mount_all(const std::vector<std::string>& args) {
 static int do_swapon_all(const std::vector<std::string>& args) {
     struct fstab *fstab;
     int ret;
+    std::string fstabfile = "";
 
-    fstab = fs_mgr_read_fstab(args[1].c_str());
+    ret = expand_props(args[1], &fstabfile);
+    if (!ret) {
+        return -1;
+    }
+
+    fstab = fs_mgr_read_fstab(fstabfile.c_str());
     ret = fs_mgr_swapon_all(fstab);
     fs_mgr_free_fstab(fstab);
 

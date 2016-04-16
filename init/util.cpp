@@ -400,7 +400,7 @@ bool expand_props(const std::string& src, std::string* dst) {
         if (prop_val.empty()) {
             if (def_val.empty()) {
                 LOG(ERROR) << "property '" << prop_name << "' doesn't exist while expanding '" << src << "'";
-                return false;
+                // don't treat this as an error, just use empty string
             }
             prop_val = def_val;
         }
