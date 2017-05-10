@@ -160,7 +160,7 @@ typedef enum {
 #endif
 
 #if __ANDROID_USE_LIBLOG_CLOCK_INTERFACE
-clockid_t android_log_clockid();
+clockid_t android_log_clockid(void);
 #endif
 
 #endif /* __linux__ */
@@ -209,7 +209,7 @@ int __android_log_error_write(int tag, const char* subTag, int32_t uid,
  * May be used to clean up File descriptors after a Fork, the resources are
  * all O_CLOEXEC so wil self clean on exec().
  */
-void __android_log_close();
+void __android_log_close(void);
 #endif
 
 #ifndef __ANDROID_USE_LIBLOG_RATELIMIT_INTERFACE
