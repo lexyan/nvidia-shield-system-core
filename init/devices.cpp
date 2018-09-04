@@ -58,7 +58,10 @@
 #define SYSFS_PREFIX    "/sys"
 static const char *firmware_dirs[] = { "/etc/firmware",
                                        "/vendor/firmware",
-                                       "/firmware/image" };
+                                       "/firmware/image",
+                                       "/data/firmware",
+                                       "/data/dvb/firmware",
+									   };
 
 extern struct selabel_handle *sehandle;
 
@@ -801,6 +804,15 @@ static void handle_generic_device_event(struct uevent *uevent)
      } else if(!strncmp(uevent->subsystem, "sound", 5)) {
          base = "/dev/snd/";
          make_dir(base, 0755);
+     } else if(!strncmp(uevent->subsystem, "dvb", 3)) {
+       if (uevent->device_name) {
+           if (!assemble_devpath(devpath, "/dev", uevent->device_name))
+               return;
+           mkdir_recursive_for_devpath(devpath);
+        } else {
+            base = "/dev/dvb/";
+            make_dir(base, 0755);
+        }
      } else if(!strncmp(uevent->subsystem, "misc", 4) && !strncmp(name, "log_", 4)) {
          LOG(INFO) << "kernel logger is deprecated";
          base = "/dev/log/";

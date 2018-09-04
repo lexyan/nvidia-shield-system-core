@@ -487,6 +487,10 @@ on post-fs-data
     mkdir /data/cache/backup_stage 0700 system system
     mkdir /data/cache/backup 0700 system system
 
+    mkdir /data/firmware 0777 media_rw media_rw
+    mkdir /data/dvb 0777 media_rw media_rw
+    mkdir /data/dvb/firmware 0777 media_rw media_rw
+
     init_user0
 
     # Set SELinux security contexts on upgrade or policy update.
